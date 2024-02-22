@@ -1,23 +1,21 @@
 FROM python:3.11-slim-bullseye
 
-RUN mkdir src
 WORKDIR /src
 
-COPY requirements.txt .
+ENV POETRY_VERSION=1.7.1
+RUN pip install --upgrade pip && \
+    pip install "poetry==$POETRY_VERSION"
 
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir --upgrade -r requirements.txt
+COPY pyproject.toml poetry.lock* /src/
 
-# for migrations
-# COPY migrations .
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi --no-dev
 
-COPY . .
+COPY . /src
 
 EXPOSE 5000
 
-# Default is not set or production
-ENV FASTAPI_CONFIG=$FASTAPI_CONFIG  
 CMD if [ "$FASTAPI_CONFIG" = "development" ] ; \
-then uvicorn app.main:app --reload --host 0.0.0.0 --port 5000; \
-else uvicorn app.main:app --host 0.0.0.0 --port 5000; \
+then poetry run uvicorn splitpenny.main:app --reload --host 0.0.0.0 --port 5000; \
+else poetry run uvicorn splitpenny.main:app --host 0.0.0.0 --port 5000; \
 fi
