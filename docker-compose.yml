@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  splitpenny:
+    build: .
+    ports:
+      - 5000:5000
+    environment:
+      - FASTAPI_CONFIG=development
+    volumes:
+      - ./app:/src/app
+    #command: uvicorn src.main:app --reload --host 0.0.0.0 --port 5000
+    #depends_on:
+    #  - db
+    #  - adminer
+#      - influxdb
