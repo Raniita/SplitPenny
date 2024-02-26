@@ -7,9 +7,31 @@ services:
       - 5000:5000
     environment:
       - FASTAPI_CONFIG=development
+      - POSTGRES_HOST=db
+      - POSTGRES_DATABASE=splitpenny
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
     volumes:
       - ./splitpenny:/src/splitpenny
-    #depends_on:
-    #  - db
-    #  - adminer
-#      - influxdb
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16-bullseye
+    container_name: splitpenny-db
+    environment:
+      - POSTGRES_DB=splitpenny
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+    #ports:
+    #  - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer:latest
+    container_name: splitpenny-adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db

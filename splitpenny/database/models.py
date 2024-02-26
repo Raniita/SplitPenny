@@ -9,11 +9,10 @@ class User(models.Model):
     password = fields.CharField(max_length=128, null=True)
     is_active = fields.BooleanField(default=True)
     telegram_id = fields.IntField(null=True, unique=True)
-    telegram_username = fields.CharField(max_lenght=50, null=True)
+    telegram_username = fields.CharField(max_length=50, null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
     modified_at = fields.DatetimeField(auto_now=True)
     owned_buckets = fields.ReverseRelation["Bucket"]
-    member_buckets = fields.ManyToManyField("models.Bucket", related_name="members", through="bucket_member")
     expenses_paid = fields.ReverseRelation["Expense"]
     
 # Modelo de Bucket
