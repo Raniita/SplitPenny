@@ -11,7 +11,7 @@ class BaseConfig(BaseSettings):
     POSTGRES_DATABASE : str = os.environ.get("POSTGRES_DATABASE", "splitpenny")
     POSTGRES_USER : str = os.environ.get("POSTGRES_USER", "root")
     POSTGRES_PASSWORD : str = os.environ.get("POSTGRES_PASSWORD", "postgres")
-    DATABASE_URL : str = f"postgres://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DATABASE}"
+    DATABASE_URL : str = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DATABASE}"
     
 class DevelopmentConfig(BaseConfig):
     DEBUG: bool = True

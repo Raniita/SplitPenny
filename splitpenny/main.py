@@ -1,14 +1,39 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from tortoise.contrib.fastapi import register_tortoise
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import AsyncEngine
+from contextlib import asynccontextmanager
 import logging
 
 from splitpenny.config import settings
+from splitpenny.database.models import Base
 
+engine: AsyncEngine = create_async_engine(settings.DATABASE_URL, echo=False)
+AsyncSessionFactory = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 logger = logging.getLogger(__name__)
 
+async def init_models():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+        
+async def get_session():
+    async_session = AsyncSessionFactory()
+    try:
+        yield async_session
+    finally:
+        await async_session.close()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Init SQLAlchemyModels
+    await init_models()
+    yield
+    # Clean up the ML models and release the resources
+    print("nothing")
+
 def create_app() :
-    app = FastAPI()
+    app = FastAPI(lifespan=lifespan)
     
     app.add_middleware(
         CORSMiddleware,
@@ -18,17 +43,11 @@ def create_app() :
         allow_headers=["*"],
     )
     
+    logging.basicConfig(level=logging.INFO, handlers=[
+        logging.StreamHandler()])  
+    
     logger.info(f"Using {settings.DATABASE_URL}")
     
-    # Register Tortoise ORM
-    register_tortoise(
-        app,
-        db_url=settings.DATABASE_URL,
-        modules={"models": ["splitpenny.database.models"]},
-        generate_schemas=True,
-        add_exception_handlers=True
-    )
-     
     @app.get("/", include_in_schema=False)
     async def home():
         return f"hello wo11rld"
