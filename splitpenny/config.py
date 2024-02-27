@@ -5,6 +5,9 @@ from pydantic_settings import BaseSettings
 class BaseConfig(BaseSettings):
     DEBUG: bool = True
     
+    SECRET_KEY: str = os.environ.get("SECRET_KEY", "splitpenny")
+    ALGORITHM: str = "HS256"
+    
     # Database Config
     POSTGRES_HOST : str = os.environ.get("POSTGRES_HOST", "db")
     POSTGRES_PORT : str = os.environ.get("POSTGRES_PORT", "5432")
