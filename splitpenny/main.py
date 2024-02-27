@@ -17,7 +17,7 @@ async def init_models():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         
-async def get_session():
+async def get_session_db():
     async_session = AsyncSessionFactory()
     try:
         yield async_session
@@ -47,6 +47,10 @@ def create_app() :
         logging.StreamHandler()])  
     
     logger.info(f"Using {settings.DATABASE_URL}")
+    
+    # Routers!
+    from splitpenny.routers.user import router as user_router
+    app.include_router(user_router)
     
     @app.get("/", include_in_schema=False)
     async def home():
