@@ -6,7 +6,7 @@ from splitpenny.schemas.user import UserInSchema, UserOutSchema
 from splitpenny.main import get_session_db
 from splitpenny.services.user import get_current_user
 
-router = APIRouter()
+router = APIRouter(tags=['Users'])
 
 @router.post("/users/", response_model=UserOutSchema)
 async def create_user(user: UserInSchema, db: AsyncSession = Depends(get_session_db)):

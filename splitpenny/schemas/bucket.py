@@ -3,16 +3,18 @@ from datetime import datetime
 
 class BucketBase(BaseModel):
     title: str
-    description: str
-    owner_id: int
+    description: str  
     
-class BucketInSchema(BucketBase):
+class BucketCreateSchema(BucketBase):
+    owner_id: int
     
     class Config:
         from_attributes = True
         
 class BucketOutSchema(BucketBase):
     id: int
+    members_id: list[int] = []
+    owner_id: int
     
     class Config:
         from_attributes = True

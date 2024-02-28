@@ -33,7 +33,8 @@ async def lifespan(app: FastAPI):
     print("nothing")
 
 def create_app() :
-    app = FastAPI(lifespan=lifespan)
+    app = FastAPI(lifespan=lifespan,
+                  openapi_tags=settings.TAG_METADATA)
     
     app.add_middleware(
         CORSMiddleware,
@@ -51,9 +52,11 @@ def create_app() :
     # Routers!
     from splitpenny.routers.user import router as user_router
     from splitpenny.routers.bucket import router as bucket_router
+    from splitpenny.routers.expense import router as expense_router
     from splitpenny.routers.auth import router as auth_router
     app.include_router(user_router)
     app.include_router(bucket_router)
+    app.include_router(expense_router)
     app.include_router(auth_router)
     
     @app.get("/", include_in_schema=False)

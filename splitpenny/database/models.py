@@ -24,7 +24,7 @@ class User(Base):
     modified_at = Column(DateTime(timezone=True), onupdate=func.now())
     owned_buckets = relationship("Bucket", back_populates="owner")
     expenses_paid = relationship("Expense", back_populates="paid_by")
-    member_buckets = relationship("Bucket", secondary=bucket_member, back_populates="members")
+    member_buckets = relationship("Bucket", secondary=bucket_member, back_populates="members", lazy="subquery")
     
 class Bucket(Base):
     __tablename__ = "bucket"

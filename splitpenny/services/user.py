@@ -32,3 +32,11 @@ def get_password_hash(password: str):
 
 def verify_password(plain_password, hashed_password):
     return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+
+async def get_user_id_from_username(db: AsyncSession, username: str):
+    async with db as session:
+        result = await session.execute(select(User.id).filter(User.username == username))
+        user_id = result.scalars().first()
+        if user_id is None:
+            raise Exception("Not found")
+        return user_id
