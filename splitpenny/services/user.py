@@ -40,3 +40,12 @@ async def get_user_id_from_username(db: AsyncSession, username: str):
         if user_id is None:
             raise Exception("Not found")
         return user_id
+    
+async def check_if_user_exists(db: AsyncSession, user_id: int):
+    async with db as session:
+        result = await session.execute(select(User).filter(User.id == user_id))
+        user = result.scalars().first()
+        if user is None:
+            return False
+        else:
+            return True
