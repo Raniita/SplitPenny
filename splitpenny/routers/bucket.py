@@ -50,6 +50,10 @@ async def add_user_to_bucket_route(bucket_id: int, user_id: int, db: AsyncSessio
     if await check_if_user_is_in_bucket(db=db, bucket_id=bucket_id, user_id=user_id):
         raise HTTPException(status_code=422, detail=f"Error: User {user_id} is already member of the bucket")
     
+    # User_id not equals to user_id_caller
+    if user_id_caller == user_id:
+        raise HTTPException(status_code=422, detail=f"Error: User {user_id} cannot be the same.")
+    
     # Add user to bucket
     await add_user_to_bucket(db=db, user_id=user_id, bucket_id=bucket_id)
     
