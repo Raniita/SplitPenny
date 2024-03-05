@@ -23,7 +23,8 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     modified_at = Column(DateTime(timezone=True), onupdate=func.now())
     owned_buckets = relationship("Bucket", back_populates="owner")
-    expenses_paid = relationship("Expense", back_populates="paid_by")
+    expenses_paid = relationship("Expense", foreign_keys="[Expense.paid_by_id]", back_populates="paid_by")
+    expenses_received = relationship("Expense", foreign_keys="[Expense.paid_to_id]", back_populates="paid_to")
     member_buckets = relationship("Bucket", secondary=bucket_member, back_populates="members", lazy="subquery")
     
 class Bucket(Base):
@@ -46,6 +47,8 @@ class Expense(Base):
     bucket_id = Column(Integer, ForeignKey('bucket.id'))
     bucket = relationship("Bucket", back_populates="expenses")
     paid_by_id = Column(Integer, ForeignKey('user.id'))
-    paid_by = relationship("User", back_populates="expenses_paid")
+    paid_by = relationship("User", foreign_keys=[paid_by_id], back_populates="expenses_paid")
+    paid_to_id = Column(Integer, ForeignKey('user.id'), nullable=True)  # nullable for general expenses
+    paid_to = relationship("User", foreign_keys=[paid_to_id], back_populates="expenses_received")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     

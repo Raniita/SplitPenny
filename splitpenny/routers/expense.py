@@ -33,4 +33,8 @@ async def create_expense_in_bucket(bucket_id: int, expense_data: ExpenseBase, db
     except Exception as ex:
         print(ex)
         raise HTTPException(status_code=422, detail=f"Error creating the expense: {str(ex)}")
+    
+@router.post("/buckets/{bucket_id}/settle/{user_id}")
+async def settle_up_to_user(bucket_id: int, user_id: int, db: AsyncSession = Depends(get_session_db), username: int = Depends(get_current_user)):
+    return ""
         
