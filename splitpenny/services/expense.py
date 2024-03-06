@@ -105,3 +105,60 @@ async def settle_up(db: AsyncSession, bucket_id: int, paid_by_id: int, paid_to_i
 
     db.add(settlement_expense)
     await db.commit()
+    
+async def calculate_user_status_in_bucket(db: AsyncSession, bucket_id: int, user_id: int):
+    result = await db.execute(
+        select(Bucket).where(Bucket.id == bucket_id)
+        .options(selectinload(Bucket.members), selectinload(Bucket.expenses))
+    )
+    bucket = result.scalars().first()
+
+    if not bucket:
+        return {"error": "Bucket not found"}
+
+    balances = defaultdict(Decimal)
+    for expense in bucket.expenses:
+        if expense.split_type == "Equally":
+            split_amount = expense.amount / Decimal(len(bucket.members))
+            if expense.paid_by_id == user_id:  # The current user paid
+                for member in bucket.members:
+                    if member.id != user_id:
+                        balances[member.id] += split_amount  # Others owe the current user
+            else:  # Another member paid
+                balances[expense.paid_by_id] -= split_amount  # The current user owes the payer
+        elif expense.split_type == "Settlement":
+            if expense.paid_by_id == user_id:
+                balances[expense.paid_to_id] += expense.amount  # Increasing what others owe the current user
+            elif expense.paid_to_id == user_id:
+                balances[expense.paid_by_id] -= expense.amount  # Decreasing what the current user owes
+
+    users_result = await db.execute(select(User.id, User.username))
+    username_map = {id: username for id, username in users_result}
+
+    detailed_balances = []
+    total_owed = Decimal(0)
+    total_owed_to_you = Decimal(0)
+
+    for other_user_id, balance in balances.items():
+        if balance > 0:
+            total_owed_to_you += balance
+            narrative = f"{username_map[other_user_id]} owes you"
+        elif balance < 0:
+            total_owed -= balance  # Subtracting because balance is negative
+            narrative = f"you owe {username_map[other_user_id]}"
+
+        detailed_balances.append({
+            "user": username_map.get(other_user_id, f"User {other_user_id}"),
+            "amount": float(abs(balance)),
+            "narrative": narrative if balance != 0 else "nothing to do"
+        })
+
+    is_settled_up = all(balance == 0 for balance in balances.values())
+
+    return {
+        "is_settled_up": is_settled_up,
+        "total_owed": float(total_owed),
+        "total_owed_to_you": float(total_owed_to_you),
+        "detailed_balances": detailed_balances
+    }
+

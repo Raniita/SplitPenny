@@ -6,13 +6,18 @@ from splitpenny.schemas.expense import ExpenseBase, ExpenseCreateSchema, Expense
 from splitpenny.main import get_session_db
 from splitpenny.services.user import get_current_user, get_user_id_from_username, check_if_user_exists
 from splitpenny.services.bucket import check_bucket_exists, check_if_user_is_in_bucket
-from splitpenny.services.expense import calculate_expenses_status, settle_up
+from splitpenny.services.expense import calculate_expenses_status, settle_up, calculate_user_status_in_bucket
 
 router = APIRouter(tags=['Buckets'])
 
 @router.post("/buckets/{bucket_id}/status")
 async def process_status_bucket(bucket_id: int, show_as_usernames: bool = False, db: AsyncSession = Depends(get_session_db), username: int = Depends(get_current_user)):
     return await calculate_expenses_status(db=db, bucket_id=bucket_id, show_as_usernames=show_as_usernames)
+
+@router.post("/buckets/{bucket_id}/status/me")
+async def process_status_bucket_me(bucket_id: int, db: AsyncSession = Depends(get_session_db), username: int = Depends(get_current_user)):
+    user_id = await get_user_id_from_username(db=db, username=username)
+    return await calculate_user_status_in_bucket(db=db, bucket_id=bucket_id, user_id=user_id)
 
 @router.post("/buckets/{bucket_id}/expense", response_model=ExpenseReadSchema)
 async def create_expense_in_bucket(bucket_id: int, expense_data: ExpenseBase, db: AsyncSession = Depends(get_session_db),
